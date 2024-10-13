@@ -7,6 +7,13 @@ function getTimeString(time) {
   remainingSecond = minute % 60;
   return `${hour} hour ${minute} minute ${remainingSecond} second ago `;
 }
+
+const removeClass = () => {
+  const buttons = document.getElementsByClassName("btn-category");
+  for(let btn of buttons){
+    btn.classList.remove("active");
+  }
+}
 // fetch and load a data
 
 // create loadCategories
@@ -17,6 +24,26 @@ const loadCategories = () => {
     .catch(error => console.log(error))
 };
 
+const loadDetails =async (videoId) =>{
+    const url = `https://openapi.programming-hero.com/api/phero-tube/video/${videoId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    displayDetails(data.video);
+
+};
+
+const displayDetails =(video) =>{
+  const detailContainer = document.getElementById('modal-content');
+
+  detailContainer.innerHTML =`
+    <img src="${video.thumbnail}"/>
+    <p> ${video.description}</p>
+  `;
+  // way -- 01 
+  // document.getElementById("showModalData").click();
+  // way -- 02
+  document.getElementById('customModal').showModal();
+}
 // create loadVideos
 const loadVideos = () => {
   fetch('https://openapi.programming-hero.com/api/phero-tube/videos')
@@ -28,7 +55,15 @@ const loadVideos = () => {
 const loadCategoriesVideos = (id) => {
   fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
     .then(res => res.json())
-    .then(data => displayVideos(data.category))
+    .then(data => {
+
+      // all class remove 
+      removeClass();
+
+      const activeBtn = document.getElementById(`btn-${id}`);
+      activeBtn.classList.add("active");
+      displayVideos(data.category);
+    })
     .catch(error => console.log(error))
 }
 
@@ -59,8 +94,7 @@ const displayVideos = (videos) => {
   const videoContainer = document.getElementById("videos");
   videoContainer.innerHTML = " ";
 
-  if(videos.length == 0)
-  {
+  if (videos.length == 0) {
     videoContainer.classList.remove("grid");
     videoContainer.innerHTML = `
       <div class=" min-h-[300px] flex flex-col gap-5 justify-center items-center">
@@ -73,7 +107,7 @@ const displayVideos = (videos) => {
     `;
     return;
   }
-  else{
+  else {
     videoContainer.classList.add("grid");
   }
   videos.forEach((video) => {
@@ -98,7 +132,7 @@ const displayVideos = (videos) => {
     <p class="text-gray-400">${video.authors[0].profile_name}</p>
     ${video.authors[0].verified ? `<img class="w-5" src="https://img.icons8.com/?size=48&id=D9RtvkuOe31p&format=png"/>` : " "}
     </div>
-    <p> </p>
+    <p> <button onclick="loadDetails('${video.video_id}')" class="btn btn-sm btn-error">Details</button></p>
     </div>
   </div>
       `;
@@ -118,7 +152,7 @@ const displayCategories = (categories) => {
     const buttonContainer = document.createElement("div");
     buttonContainer.innerHTML = `
 
-    <button onclick="loadCategoriesVideos(${item.category_id})" class = "btn">
+    <button id="btn-${item.category_id}" onclick="loadCategoriesVideos(${item.category_id})" class = "btn btn-category">
       ${item.category}
     </button>
     
